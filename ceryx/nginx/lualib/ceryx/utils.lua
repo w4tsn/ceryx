@@ -18,7 +18,7 @@ end
 
 function exports.ensure_protocol(target)
     if not starts_with_protocol(target) then
-        return "http://" .. target
+        return "https://" .. target
     end
 
     return target
