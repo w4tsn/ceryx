@@ -1,6 +1,6 @@
 import re
 import typesystem
-
+import json
 
 def ensure_protocol(url):
     starts_with_protocol = r"^https?://"
@@ -13,6 +13,14 @@ def boolean_to_redis(value: bool):
 
 def redis_to_boolean(value):
     return True if value == "1" else False
+
+  
+def object_to_redis(value: object):
+    return json.dumps(value)
+
+
+def redis_to_object(value):
+    return json.loads(value)
 
 
 def integer_to_redis(value: int):
@@ -38,6 +46,9 @@ def value_to_redis(field, value):
     if isinstance(field, typesystem.Reference):
         return field.target.validate(value).to_redis()
 
+    if isinstance(field, typesystem.Object):
+        return object_to_redis(value)
+
     if isinstance(field, typesystem.Integer):
         return integer_to_redis(value)
 
@@ -50,6 +61,9 @@ def redis_to_value(field, redis_value):
     
     if isinstance(field, typesystem.Reference):
         return field.target.from_redis(redis_value)
+
+    if isinstance(field, typesystem.Object):
+        return redis_to_object(redis_value)
 
     if isinstance(field, typesystem.Integer):
         return redis_to_integer(redis_value)
@@ -83,6 +97,7 @@ class Settings(BaseSchema):
         ),
         default="proxy",
     )
+    headers = typesystem.Object(default={}, properties=typesystem.String(max_length=100))
     ttl = typesystem.Integer(allow_null=True)
     certificate_path = typesystem.String(allow_null=True)
     key_path = typesystem.String(allow_null=True)
