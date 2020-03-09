@@ -26,6 +26,7 @@ server {
 
     location / {
         set $target "fallback";
+        set $host_from_target {{ default .Env.CERYX_HOST_FROM_TARGET "false" }};
 
         # Lua files
         access_by_lua_file lualib/router.lua;

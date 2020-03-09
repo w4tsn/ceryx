@@ -31,9 +31,17 @@ end
 
 function proxy(source, target, headers)
     ngx.var.target = target
+    local hostFromTarget = ngx.var.host_from_target
+    local targetComponents, err = ngx.re.match(target, "^((?<proto>http[s]?|ftp):\\/\\/)?(?<host>[^:\\/\\s]+):?(?<port>\\d+)?(?<path>\\/\\w+[\\w\\-\\.]+[^#?\\s]+)\\?(?<args>.*)(#[\\w\\-]+)?$")
+    if err then
+        ngx.log(ngx.ERR, "Parsing target URL components failed with " .. err)
+    end
+    if hostFromTarget and targetComponents then
+        ngx.req.set_header('Host', targetComponents['host'])
+    end
     for k,v in pairs(headers) do
         ngx.req.set_header(k, v)
-end
+    end
     ngx.log(ngx.INFO, "Proxying request for " .. source)
 end
 
